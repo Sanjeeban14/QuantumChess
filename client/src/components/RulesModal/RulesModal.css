@@ -1,0 +1,179 @@
+.rules-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.rules-modal {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  padding: 30px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.rules-modal h2 {
+  margin: 0 0 20px 0;
+  text-align: center;
+  font-size: 1.8em;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.rules-modal section {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rules-modal section:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.rules-modal h3 {
+  margin: 0 0 10px 0;
+  color: #e0e0e0;
+  font-size: 1.1em;
+}
+
+.rules-modal p {
+  margin: 0;
+  color: #aaa;
+  line-height: 1.6;
+}
+
+.rules-modal ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #aaa;
+  line-height: 1.8;
+}
+
+.rules-modal li {
+  margin-bottom: 6px;
+}
+
+.rules-modal strong {
+  color: #e0e0e0;
+}
+
+.rules-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.4em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.rules-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Help button that opens the modal */
+.help-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  font-size: 1.5em;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transition: all 0.2s ease;
+  z-index: 100;
+}
+
+.help-btn:hover {
+  transform: translateX(-50%) scale(1.1);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+/* Scrollbar styling for the modal */
+.rules-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.rules-modal::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.rules-modal::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.rules-modal::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  .rules-modal {
+    padding: 24px 20px;
+    max-height: 85vh;
+    margin: 10px;
+    width: calc(100% - 20px);
+  }
+
+  .rules-modal h2 {
+    font-size: 1.5em;
+    margin-bottom: 16px;
+    padding-right: 30px;
+    /* Space for close button */
+  }
+
+  .rules-modal h3 {
+    font-size: 1em;
+  }
+
+  .rules-modal p,
+  .rules-modal ul {
+    font-size: 0.9em;
+    line-height: 1.5;
+  }
+
+  .rules-modal section {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .rules-close {
+    width: 36px;
+    height: 36px;
+    top: 12px;
+    right: 12px;
+    font-size: 1.2em;
+  }
+}

@@ -1,0 +1,14 @@
+.particle-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.field-particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform, left, top;
+}

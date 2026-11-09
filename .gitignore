@@ -1,0 +1,71 @@
+# Dependencies
+node_modules/
+**/node_modules/
+__pycache__/
+**/__pycache__/
+*.pyc
+.pyo
+.pyd
+
+# Build outputs
+dist/
+**/dist/
+build/
+*.egg-info/
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+*.local
+.venv/
+venv/
+env/
+
+# IDE & editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+
+
+# Local audit reports and generated audit output
+AUDIT_REPORT.md
+audit/
+audits/
+
+# Test files and generated test output
+TESTING.md
+client/vitest.config.*
+client/src/**/*.test.*
+server/test_*.py
+server/requirements-dev.txt
+coverage/
+**/coverage/
+htmlcov/
+.coverage
+.coverage.*

@@ -1,0 +1,2 @@
+export { QuantumTitle } from './QuantumTitle';
+

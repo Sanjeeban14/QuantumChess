@@ -1,0 +1,2 @@
+export { MoveNotation } from './MoveNotation';
+

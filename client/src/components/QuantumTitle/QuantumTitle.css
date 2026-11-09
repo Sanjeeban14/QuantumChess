@@ -1,0 +1,213 @@
+/* ═══════════════════════════════════════════════════════════════
+   QUANTUM TITLE - Wave function inspired visual experience
+   ═══════════════════════════════════════════════════════════════ */
+
+.quantum-title-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 30px;
+  cursor: default;
+  overflow: visible;
+  min-height: 120px;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   WAVE INTERFERENCE BACKGROUND
+   ───────────────────────────────────────────────────────────────── */
+.wave-background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.interference-wave {
+  filter: blur(1px);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   ELECTRON ORBITALS
+   ───────────────────────────────────────────────────────────────── */
+.orbital-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.orbital {
+  position: absolute;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 50%;
+}
+
+.orbital-1 {
+  width: 200px;
+  height: 80px;
+  transform: rotate(-15deg);
+}
+
+.orbital-2 {
+  width: 180px;
+  height: 60px;
+  transform: rotate(25deg);
+}
+
+.electron {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #00f0ff;
+  border-radius: 50%;
+  top: -3px;
+  left: 50%;
+  box-shadow: 0 0 10px #00f0ff, 0 0 20px #00f0ff;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   TITLE WRAPPER
+   ───────────────────────────────────────────────────────────────── */
+.title-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SUPERPOSITION GHOST LAYERS (Color overlays)
+   ───────────────────────────────────────────────────────────────── */
+.ghost-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  pointer-events: none;
+  filter: blur(15px);
+}
+
+.ghost-1 {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.6) 0%, transparent 70%);
+}
+
+.ghost-2 {
+  background: linear-gradient(225deg, rgba(217, 70, 239, 0.6) 0%, transparent 70%);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   MAIN TITLE - Wave animated letters
+   ───────────────────────────────────────────────────────────────── */
+.title-main {
+  position: relative;
+  display: flex;
+  gap: 0.25em;
+  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+
+.word {
+  display: flex;
+}
+
+.letter {
+  display: inline-block;
+  background: linear-gradient(135deg, #00f0ff 0%, #8b5cf6 50%, #d946ef 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 4s ease infinite;
+  /* Subtle faint glow - wave state (connected) */
+  filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.35));
+  transition: filter 0.3s ease;
+}
+
+@keyframes gradientShift {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Hover state - collapse: each letter gets its own subtle glow (particle state) */
+.quantum-title-container:hover .letter {
+  animation-play-state: paused;
+  filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.5));
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   MEASUREMENT FLASH
+   ───────────────────────────────────────────────────────────────── */
+.measurement-flash {
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+  pointer-events: none;
+  border-radius: 50%;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   STATE INDICATOR - Quantum notation display
+   ───────────────────────────────────────────────────────────────── */
+.state-indicator {
+  margin-top: 10px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+  font-size: 0.85rem;
+  color: #c4b5fd;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+  transition: opacity 0.3s ease, color 0.3s ease;
+  z-index: 10;
+}
+
+.quantum-title-container:hover .state-indicator {
+  color: #d8b4fe;
+  text-shadow: 0 0 6px rgba(139, 92, 246, 0.5);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   RESPONSIVE ADJUSTMENTS
+   ───────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .quantum-title-container {
+    padding: 15px 10px;
+  }
+
+  .title-main {
+    flex-direction: column;
+    gap: 0;
+    align-items: center;
+  }
+
+  .orbital-container {
+    display: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   ACCESSIBILITY - Reduced motion support
+   ───────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+
+  .letter,
+  .orbital,
+  .superposition-layer,
+  .probability-cloud {
+    animation: none !important;
+  }
+}

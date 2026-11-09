@@ -1,0 +1,673 @@
+.game-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  position: relative;
+}
+
+/* Board + Notation side by side */
+.board-and-notation {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+@media (max-width: 900px) {
+  .board-and-notation {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+.game-info {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  color: #fff;
+  font-size: 1.1rem;
+}
+
+.player-info {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+.turn-info {
+  background: rgba(46, 204, 113, 0.2);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(46, 204, 113, 0.5);
+}
+
+.check-warning {
+  background: rgba(231, 76, 60, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #e74c3c;
+  color: #e74c3c;
+  font-weight: bold;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Board with clocks wrapper */
+.board-with-clocks {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Chess Clocks */
+.clock-row {
+  display: flex;
+  margin: 5px 0;
+}
+
+.opponent-clock-row {
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.player-clock-row {
+  justify-content: flex-start;
+  margin-top: 8px;
+}
+
+.chess-clock {
+  min-width: 90px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  transition: all 0.2s ease;
+}
+
+.chess-clock.player {
+  background: rgba(46, 204, 113, 0.15);
+  border: 2px solid rgba(46, 204, 113, 0.3);
+  color: #2ecc71;
+}
+
+.chess-clock.opponent {
+  background: rgba(52, 152, 219, 0.15);
+  border: 2px solid rgba(52, 152, 219, 0.3);
+  color: #3498db;
+}
+
+.chess-clock.active {
+  border-width: 3px;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+.chess-clock.active.player {
+  background: rgba(46, 204, 113, 0.3);
+  border-color: #2ecc71;
+  box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
+}
+
+.chess-clock.active.opponent {
+  background: rgba(52, 152, 219, 0.3);
+  border-color: #3498db;
+  box-shadow: 0 0 15px rgba(52, 152, 219, 0.4);
+}
+
+.chess-clock.low-time {
+  background: rgba(241, 196, 15, 0.2) !important;
+  border-color: #f1c40f !important;
+  color: #f1c40f !important;
+}
+
+.chess-clock.critical {
+  background: rgba(231, 76, 60, 0.3) !important;
+  border-color: #e74c3c !important;
+  color: #e74c3c !important;
+  animation: pulse 0.5s ease-in-out infinite;
+}
+
+.clock-label {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.clock-time {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.game-controls {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.move-count {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.leave-btn {
+  padding: 10px 20px;
+  background: rgba(231, 76, 60, 0.2);
+  border: 1px solid #e74c3c;
+  color: #e74c3c;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.2s ease;
+}
+
+.leave-btn:hover {
+  background: rgba(231, 76, 60, 0.4);
+}
+
+.log-btn {
+  padding: 8px 14px;
+  background: rgba(52, 152, 219, 0.2);
+  border: 1px solid #3498db;
+  color: #3498db;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85em;
+  transition: all 0.2s ease;
+}
+
+.log-btn:hover {
+  background: rgba(52, 152, 219, 0.4);
+}
+
+/* Quantum UI Elements */
+.quantum-badge {
+  margin-left: 10px;
+  background: linear-gradient(135deg, #8a2be2 0%, #00ced1 100%);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+.split-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, rgba(138, 43, 226, 0.3) 0%, rgba(0, 206, 209, 0.3) 100%);
+  border: 1px solid #8a2be2;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.2s ease;
+}
+
+.split-btn:hover {
+  background: linear-gradient(135deg, rgba(138, 43, 226, 0.5) 0%, rgba(0, 206, 209, 0.5) 100%);
+  transform: scale(1.05);
+}
+
+.split-btn.active {
+  background: linear-gradient(135deg, #8a2be2 0%, #00ced1 100%);
+  box-shadow: 0 0 20px rgba(138, 43, 226, 0.6);
+  animation: quantum-pulse 1s ease-in-out infinite;
+}
+
+@keyframes quantum-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(138, 43, 226, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 25px rgba(138, 43, 226, 0.8);
+  }
+}
+
+.collapse-info {
+  background: rgba(138, 43, 226, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #8a2be2;
+  color: #fff;
+  font-size: 0.9em;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Quantum tips container with help button */
+.quantum-tips-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 600px;
+}
+
+.help-btn-inline {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  border: 2px solid rgba(138, 43, 226, 0.5);
+  background: rgba(138, 43, 226, 0.2);
+  color: #8a2be2;
+  font-size: 1.2em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.help-btn-inline:hover {
+  background: rgba(138, 43, 226, 0.4);
+  border-color: #8a2be2;
+  transform: scale(1.05);
+}
+
+.quantum-instructions {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px 20px;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85em;
+  border: 1px solid rgba(138, 43, 226, 0.3);
+}
+
+.quantum-instructions strong {
+  color: #8a2be2;
+}
+
+.quantum-instructions ul {
+  margin: 10px 0 0 0;
+  padding-left: 20px;
+}
+
+.quantum-instructions li {
+  margin: 5px 0;
+}
+
+/* Resign button */
+.resign-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #e74c3c;
+  background: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.resign-btn:hover {
+  background: rgba(231, 76, 60, 0.4);
+}
+
+/* Rematch button in game controls */
+.game-controls .rematch-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #27ae60;
+  background: rgba(39, 174, 96, 0.2);
+  color: #2ecc71;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.game-controls .rematch-btn:hover:not(:disabled) {
+  background: rgba(39, 174, 96, 0.4);
+}
+
+.game-controls .rematch-btn.pending {
+  border-color: #6b7280;
+  background: rgba(107, 114, 128, 0.2);
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Resign confirmation overlay */
+.resign-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.resign-popup {
+  background: linear-gradient(145deg, #2a2a3e, #1a1a2e);
+  border: 1px solid #444;
+  border-radius: 12px;
+  padding: 24px 32px;
+  text-align: center;
+  max-width: 360px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.resign-popup h3 {
+  color: #fff;
+  margin: 0 0 12px 0;
+  font-size: 1.3em;
+}
+
+.resign-popup p {
+  color: #aaa;
+  margin: 0 0 20px 0;
+  font-size: 0.95em;
+}
+
+.resign-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.resign-confirm {
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: none;
+  background: #e74c3c;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.resign-confirm:hover {
+  background: #c0392b;
+}
+
+.resign-cancel {
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: 1px solid #555;
+  background: transparent;
+  color: #ccc;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.resign-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #888;
+}
+
+@media (max-width: 600px) {
+  .game-info {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+/* Peer Disconnected Overlay */
+.peer-disconnected-overlay,
+.reconnecting-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.peer-disconnected-popup,
+.reconnecting-popup {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 32px 40px;
+  text-align: center;
+  max-width: 400px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.disconnect-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.peer-disconnected-popup h3,
+.reconnecting-popup h3 {
+  color: #fff;
+  margin: 0 0 12px 0;
+  font-size: 1.4rem;
+}
+
+.peer-disconnected-popup p,
+.reconnecting-popup p {
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 8px 0;
+  font-size: 0.95rem;
+}
+
+.grace-period {
+  color: rgba(102, 126, 234, 0.9);
+  font-size: 0.85rem !important;
+}
+
+.peer-disconnected-popup .spinner.small {
+  width: 24px;
+  height: 24px;
+  margin: 16px auto;
+}
+
+.peer-disconnected-popup .back-btn {
+  margin-top: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.peer-disconnected-popup .back-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.reconnecting-popup .spinner {
+  margin: 0 auto 16px;
+}
+
+/* ========================================
+   MOBILE RESPONSIVE STYLES
+   ======================================== */
+
+/* Small tablets and large phones */
+@media (max-width: 768px) {
+  .game-container {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .game-info {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    font-size: 0.95rem;
+  }
+
+  .player-info,
+  .turn-info,
+  .check-warning {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  .game-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .split-btn,
+  .resign-btn,
+  .game-controls .rematch-btn {
+    padding: 10px 16px;
+    font-size: 0.9em;
+    min-height: 44px;
+    /* Touch-friendly minimum */
+  }
+
+  .quantum-tips-container {
+    gap: 10px;
+  }
+
+  .help-btn-inline {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    font-size: 1em;
+  }
+
+  .quantum-instructions {
+    padding: 12px 15px;
+    font-size: 0.8em;
+  }
+
+  .quantum-instructions ul {
+    padding-left: 15px;
+  }
+
+  .help-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1em;
+    bottom: 15px;
+    right: 15px;
+  }
+
+  /* Popups */
+  .resign-popup,
+  .peer-disconnected-popup,
+  .reconnecting-popup {
+    margin: 16px;
+    padding: 20px 24px;
+    max-width: calc(100vw - 32px);
+  }
+}
+
+/* Phones */
+@media (max-width: 480px) {
+  .game-container {
+    padding: 8px;
+    gap: 10px;
+  }
+
+  .game-info {
+    font-size: 0.85rem;
+    gap: 8px;
+  }
+
+  .player-info,
+  .turn-info,
+  .check-warning {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+
+  .quantum-badge {
+    margin-left: 6px;
+    padding: 3px 8px;
+    font-size: 0.7em;
+  }
+
+  .game-controls {
+    gap: 8px;
+  }
+
+  .split-btn,
+  .resign-btn,
+  .game-controls .rematch-btn {
+    padding: 8px 14px;
+    font-size: 0.85em;
+  }
+
+  .move-count {
+    font-size: 0.8rem;
+  }
+
+  .quantum-tips-container {
+    display: none;
+    /* Hide on very small screens to save space */
+  }
+
+  .help-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1em;
+    bottom: 10px;
+    right: 10px;
+  }
+
+  /* Popups become full-width on small screens */
+  .resign-popup,
+  .peer-disconnected-popup,
+  .reconnecting-popup {
+    margin: 12px;
+    padding: 16px 20px;
+    border-radius: 12px;
+  }
+
+  .resign-popup h3,
+  .peer-disconnected-popup h3 {
+    font-size: 1.2rem;
+  }
+
+  .disconnect-icon {
+    font-size: 36px;
+  }
+}
