@@ -47,6 +47,9 @@ interface UseChessGameOptions {
   serverUrl?: string;
 }
 
+const COMPUTER_MOVE_DELAY_MIN_MS = 1_000;
+const COMPUTER_MOVE_DELAY_MAX_MS = 10_000;
+
 export function useChessGame({ serverUrl = '' }: UseChessGameOptions = {}) {
   const [gameState, setGameState] = useState<QuantumGameState | null>(null);
   const [playerColor, setPlayerColor] = useState<Player>('white');
@@ -461,9 +464,14 @@ export function useChessGame({ serverUrl = '' }: UseChessGameOptions = {}) {
   }, []);
 
   // Handle split mode selection
-  const handleSplitSelection = useCallback((square: Square): 'from' | 'to1' | 'complete' | 'cancelled' => {
+  const handleSplitSelection = useCallback((square: Square, sourceSquare?: Square): 'from' | 'to1' | 'complete' | 'cancelled' => {
     if (!splitFrom) {
-      setSplitFrom(square);
+      const source = sourceSquare ?? square;
+      setSplitFrom(source);
+      if (sourceSquare && sourceSquare !== square) {
+        setSplitTo1(square);
+        return 'to1';
+      }
       return 'from';
     } else if (!splitTo1) {
       setSplitTo1(square);
@@ -655,6 +663,8 @@ export function useChessGame({ serverUrl = '' }: UseChessGameOptions = {}) {
       return;
     }
 
+    const delay = COMPUTER_MOVE_DELAY_MIN_MS
+      + Math.floor(Math.random() * (COMPUTER_MOVE_DELAY_MAX_MS - COMPUTER_MOVE_DELAY_MIN_MS + 1));
     const timer = setTimeout(() => {
       const actions = getLegalActions(gameState);
       if (actions.length === 0) {
@@ -671,7 +681,7 @@ export function useChessGame({ serverUrl = '' }: UseChessGameOptions = {}) {
       if (!succeeded) {
         setError('Computer move was rejected by the chess engine.');
       }
-    }, 75);
+    }, delay);
 
     return () => clearTimeout(timer);
   }, [isComputerGame, gameState, executeMove, executeSplitMove]);

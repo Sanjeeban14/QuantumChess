@@ -98,6 +98,16 @@ function App() {
 
   // Game end modal dismissed state
   const [gameEndDismissed, setGameEndDismissed] = useState(false);
+  const [isBoardFlipped, setIsBoardFlipped] = useState(false);
+
+  const totalMoves = gameState?.moveHistory.length ?? 0;
+  const currentMoveIndex = viewingMoveIndex ?? totalMoves - 1;
+  const boardOrientation = isBoardFlipped
+    ? playerColor === 'white' ? 'black' : 'white'
+    : playerColor;
+  const navigateToMove = (moveIndex: number | null) => {
+    setViewingMoveIndex(moveIndex);
+  };
 
   // Show toast notifications for state changes
   useEffect(() => {
@@ -170,19 +180,28 @@ function App() {
             Playing as: <strong>{playerColor}</strong>
             {quantumMode && <span className="quantum-badge" aria-label="Quantum mode enabled">⚛️ Quantum</span>}
           </div>
-          <div
-            className="turn-info"
-            role="status"
-            aria-live="polite"
-            aria-label={gameOver
-              ? `Game Over: ${gameState.gameStatus.replace('_', ' ')}`
-              : isMyTurn ? 'Your turn' : isComputerGame ? "Computer's turn" : "Opponent's turn"
-            }
-          >
-            {gameOver
-              ? `Game Over: ${gameState.gameStatus.replace('_', ' ')}`
-              : isMyTurn ? '🎯 Your turn' : isComputerGame ? "⏳ Computer's turn" : "⏳ Opponent's turn"
-            }
+          <div className="turn-info-group">
+            <div
+              className="turn-info"
+              role="status"
+              aria-live="polite"
+              aria-label={gameOver
+                ? `Game Over: ${gameState.gameStatus.replace('_', ' ')}`
+                : isMyTurn ? 'Your turn' : isComputerGame ? "Computer's turn" : "Opponent's turn"
+              }
+            >
+              {gameOver
+                ? `Game Over: ${gameState.gameStatus.replace('_', ' ')}`
+                : isMyTurn ? '🎯 Your turn' : isComputerGame ? "⏳ Computer's turn" : "⏳ Opponent's turn"
+              }
+            </div>
+            <button
+              className="flip-board-btn"
+              onClick={() => setIsBoardFlipped(prev => !prev)}
+              aria-label={isBoardFlipped ? 'Flip board back' : 'Flip board'}
+            >
+              ↻ Flip Board
+            </button>
           </div>
           {gameState.chess.isCheck() && !gameOver && (
             <div className="check-warning" role="alert" aria-live="assertive">⚠️ Check!</div>
@@ -192,7 +211,7 @@ function App() {
 
         <div className="board-and-notation" role="region" aria-label="Chess board and move history">
           <div className="board-with-clocks">
-            {/* Opponent's Clock - above board, aligned right (h-file) */}
+            {/* Opponent's Clock - above board, aligned left with the board */}
             <div className="clock-row opponent-clock-row">
               <ChessClock
                 timeMs={playerColor === 'white' ? timerState.blackTimeMs : timerState.whiteTimeMs}
@@ -202,16 +221,67 @@ function App() {
               />
             </div>
 
-            <Chessboard
-              gameState={gameState}
-              playerColor={playerColor}
-              isMyTurn={isMyTurn}
-              onMove={executeMove}
-              splitMode={splitMode}
-              splitFrom={splitFrom}
-              splitTo1={splitTo1}
-              onSplitSelection={handleSplitSelection}
-            />
+            <div className="board-stage">
+              <div className="move-navigation" role="toolbar" aria-label="Move navigation">
+                <div className="move-navigation-item">
+                  <button
+                    onClick={() => navigateToMove(0)}
+                    disabled={totalMoves === 0 || currentMoveIndex <= 0}
+                    title="First move"
+                    aria-label="First move"
+                  >
+                    O
+                  </button>
+                  <span>First Move</span>
+                </div>
+                <div className="move-navigation-item">
+                  <button
+                    onClick={() => navigateToMove(Math.max(0, currentMoveIndex - 1))}
+                    disabled={totalMoves === 0 || currentMoveIndex <= 0}
+                    title="Previous move"
+                    aria-label="Previous move"
+                  >
+                    ←
+                  </button>
+                  <span>Previous Move</span>
+                </div>
+                <div className="move-navigation-item">
+                  <button
+                    onClick={() => navigateToMove(Math.min(totalMoves - 1, currentMoveIndex + 1))}
+                    disabled={totalMoves === 0 || currentMoveIndex >= totalMoves - 1}
+                    title="Next move"
+                    aria-label="Next move"
+                  >
+                    →
+                  </button>
+                  <span>Next Move</span>
+                </div>
+                <div className="move-navigation-item">
+                  <button
+                    onClick={() => navigateToMove(null)}
+                    disabled={viewingMoveIndex === null}
+                    title="Return to current move"
+                    aria-label="Return to current move"
+                  >
+                    X
+                  </button>
+                  <span>Current Move</span>
+                </div>
+              </div>
+
+              <Chessboard
+                gameState={gameState}
+                playerColor={playerColor}
+                boardOrientation={boardOrientation}
+                isMyTurn={isMyTurn}
+                onMove={executeMove}
+                highlightedMove={gameState.moveHistory[currentMoveIndex] ?? null}
+                splitMode={splitMode}
+                splitFrom={splitFrom}
+                splitTo1={splitTo1}
+                onSplitSelection={handleSplitSelection}
+              />
+            </div>
 
             {/* Player's Clock - below board, aligned left (a-file) */}
             <div className="clock-row player-clock-row">
@@ -221,14 +291,33 @@ function App() {
                 label="You"
               />
             </div>
+
           </div>
 
-          <MoveNotation
-            gameState={gameState}
-            viewingMoveIndex={viewingMoveIndex}
-            onNavigate={setViewingMoveIndex}
-            isGameOver={gameOver}
-          />
+          <div className="right-game-panel">
+            <MoveNotation
+              gameState={gameState}
+              viewingMoveIndex={viewingMoveIndex}
+              onNavigate={navigateToMove}
+              isGameOver={gameOver}
+            />
+
+            {quantumMode && (
+              <aside className="quantum-tips-panel" aria-label="Quick tips">
+                <button className="help-btn-inline" onClick={() => setShowRulesModal(true)} aria-label="Open game rules">
+                  ?
+                </button>
+                <div className="quantum-instructions">
+                  <strong>⚛️ Quick Tips:</strong>
+                  <ul>
+                    <li><strong>Split:</strong> Put a piece in two places at once (50/50)</li>
+                    <li><strong>Capture:</strong> Superposition pieces collapse randomly - they might escape!</li>
+                    <li><strong>Limit:</strong> Max {gameState.maxSuperpositions} pieces in superposition per player</li>
+                  </ul>
+                </div>
+              </aside>
+            )}
+          </div>
         </div>
 
         <nav className="game-controls" role="toolbar" aria-label="Game controls">
@@ -310,23 +399,6 @@ function App() {
               <button className="back-btn" onClick={disconnect} aria-label="Return to lobby">
                 ← Back to Lobby
               </button>
-            </div>
-          </div>
-        )}
-
-        {/* Quantum quick tips with help button */}
-        {quantumMode && (
-          <div className="quantum-tips-container">
-            <button className="help-btn-inline" onClick={() => setShowRulesModal(true)} aria-label="Open game rules">
-              ?
-            </button>
-            <div className="quantum-instructions">
-              <strong>⚛️ Quick Tips:</strong>
-              <ul>
-                <li><strong>Split:</strong> Put a piece in two places at once (50/50)</li>
-                <li><strong>Capture:</strong> Superposition pieces collapse randomly - they might escape!</li>
-                <li><strong>Limit:</strong> Max {gameState.maxSuperpositions} pieces in superposition per player</li>
-              </ul>
             </div>
           </div>
         )}

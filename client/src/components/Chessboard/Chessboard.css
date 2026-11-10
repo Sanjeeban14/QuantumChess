@@ -70,6 +70,19 @@
   background-color: #b58863;
 }
 
+@keyframes capture-flash {
+  0%,
+  100% {
+    background-color: rgba(255, 120, 120, 0);
+    box-shadow: inset 0 0 0 0 rgba(255, 80, 80, 0);
+  }
+
+  35% {
+    background-color: rgba(255, 120, 120, 0.55);
+    box-shadow: inset 0 0 0 4px rgba(255, 80, 80, 0.65);
+  }
+}
+
 .square.selected {
   background-color: #829769 !important;
   box-shadow: inset 0 0 0 3px rgba(255, 255, 0, 0.6);

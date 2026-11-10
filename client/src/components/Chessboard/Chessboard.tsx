@@ -1,33 +1,77 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Chessboard as ReactChessboard } from 'react-chessboard';
 import type { Square } from 'chess.js';
-import type { QuantumGameState } from '../../engine/ChessEngine';
-import { getSuperpositionPieces, getBoardPosition, findPieceAtSquare, getLegalMovesFromSquare } from '../../engine/ChessEngine';
+import type { MoveRecord, QuantumGameState } from '../../engine/ChessEngine';
+import { getSuperpositionPieces, getBoardPosition, findPieceAtSquare, getLegalActions, getLegalMovesFromSquare } from '../../engine/ChessEngine';
 import './Chessboard.css';
+
+const BOARD_SIZE = 640;
 
 interface ChessboardProps {
   gameState: QuantumGameState;
   playerColor: 'white' | 'black';
+  boardOrientation?: 'white' | 'black';
   isMyTurn: boolean;
   onMove: (from: Square, to: Square, promotion?: string) => boolean;
+  highlightedMove?: MoveRecord | null;
   splitMode?: boolean;
   splitFrom?: Square | null;
   splitTo1?: Square | null;
-  onSplitSelection?: (square: Square) => void;
+  onSplitSelection?: (square: Square, sourceSquare?: Square) => void;
 }
 
 export function Chessboard({
   gameState,
   playerColor,
+  boardOrientation = playerColor,
   isMyTurn,
   onMove,
+  highlightedMove = null,
   splitMode = false,
   splitFrom = null,
   splitTo1 = null,
   onSplitSelection
 }: ChessboardProps) {
+  const [boardSize, setBoardSize] = useState(BOARD_SIZE);
   const [moveFrom, setMoveFrom] = useState<string | null>(null);
   const [optionSquares, setOptionSquares] = useState<Record<string, React.CSSProperties>>({});
+  const [captureSquare, setCaptureSquare] = useState<Square | null>(null);
+
+  useEffect(() => {
+    const updateBoardSize = () => {
+      const availableWidth = window.innerWidth - 120;
+      setBoardSize(Math.min(BOARD_SIZE, Math.max(240, availableWidth)));
+    };
+
+    updateBoardSize();
+    window.addEventListener('resize', updateBoardSize);
+    return () => window.removeEventListener('resize', updateBoardSize);
+  }, []);
+
+  useEffect(() => {
+    const latestMove = gameState.moveHistory[gameState.moveHistory.length - 1];
+    if (!latestMove) return;
+
+    const capturedSquare = latestMove.type === 'quantum_capture'
+      ? latestMove.collapseResult?.wasCapture
+        ? latestMove.collapseResult.collapsedTo
+        : null
+      : latestMove.type === 'capture'
+        ? latestMove.to as Square
+        : null;
+
+    if (!capturedSquare) {
+      const timer = setTimeout(() => setCaptureSquare(null), 0);
+      return () => clearTimeout(timer);
+    }
+
+    const showTimer = setTimeout(() => setCaptureSquare(capturedSquare), 0);
+    const hideTimer = setTimeout(() => setCaptureSquare(null), 1_000);
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, [gameState.moveHistory]);
 
   // Get pieces in superposition for visual indicators
   const superpositionPieces = getSuperpositionPieces(gameState);
@@ -64,7 +108,7 @@ export function Chessboard({
 
     // SPLIT MODE: Handle quantum split selection
     if (splitMode && onSplitSelection) {
-      onSplitSelection(square as Square);
+      onSplitSelection(square as Square, !splitFrom ? moveFrom as Square | undefined : undefined);
       return;
     }
 
@@ -107,14 +151,19 @@ export function Chessboard({
 
       const newSquares: Record<string, React.CSSProperties> = {};
 
-      // Store target squares for move validation (but don't show visual indicators)
+      // Store target squares for move validation and highlight valid destinations.
       targetSquares.forEach(targetSq => {
-        // Just mark as valid target, no visual indicator
-        newSquares[targetSq] = {};
+        newSquares[targetSq] = {
+          background: 'rgba(255, 215, 0, 0.45)',
+          boxShadow: 'inset 0 0 0 3px rgba(255, 193, 7, 0.8)'
+        };
       });
 
       // Highlight selected square only
-      newSquares[square] = { background: 'rgba(255, 255, 0, 0.4)' };
+      newSquares[square] = {
+        background: 'rgba(255, 235, 59, 0.7)',
+        boxShadow: 'inset 0 0 0 3px rgba(255, 193, 7, 0.95)'
+      };
 
       setOptionSquares(newSquares);
     } else {
@@ -122,7 +171,7 @@ export function Chessboard({
       setMoveFrom(null);
       setOptionSquares({});
     }
-  }, [isMyTurn, moveFrom, optionSquares, gameState, playerColor, onMove, splitMode, onSplitSelection]);
+  }, [isMyTurn, moveFrom, optionSquares, gameState, playerColor, onMove, splitMode, splitFrom, onSplitSelection]);
 
   // Custom square styles for check indication and quantum highlighting
   const customSquareStyles: Record<string, React.CSSProperties> = { ...optionSquares };
@@ -198,20 +247,68 @@ export function Chessboard({
 
   // Highlight split mode selections
   if (splitMode) {
+    const splitSource = splitFrom ?? moveFrom;
+    const splitActions = getLegalActions(gameState).filter(
+      action => action.type === 'split' && action.from === splitSource
+    );
+    const splitTargets = new Set<string>();
+
+    splitActions.forEach(action => {
+      if (action.type === 'split') {
+        if (!splitTo1 || action.to === splitTo1 || action.to2 === splitTo1) {
+          splitTargets.add(action.to);
+          if (action.to2) splitTargets.add(action.to2);
+        }
+      }
+    });
+
+    splitTargets.delete(splitSource ?? '');
+    if (splitTo1) splitTargets.delete(splitTo1);
+
+    splitTargets.forEach(square => {
+      customSquareStyles[square] = {
+        ...customSquareStyles[square],
+        background: 'rgba(255, 215, 0, 0.45)',
+        boxShadow: 'inset 0 0 0 3px rgba(255, 193, 7, 0.8)'
+      };
+    });
+
     if (splitFrom) {
       customSquareStyles[splitFrom] = {
         ...customSquareStyles[splitFrom],
-        background: 'rgba(138, 43, 226, 0.5)',
-        boxShadow: 'inset 0 0 15px rgba(138, 43, 226, 0.8)'
+        background: 'rgba(255, 235, 59, 0.7)',
+        boxShadow: 'inset 0 0 0 3px rgba(255, 193, 7, 0.95)'
       };
     }
     if (splitTo1) {
       customSquareStyles[splitTo1] = {
         ...customSquareStyles[splitTo1],
-        background: 'rgba(0, 255, 255, 0.4)',
-        boxShadow: 'inset 0 0 15px rgba(0, 255, 255, 0.8)'
+        background: 'rgba(255, 193, 7, 0.8)',
+        boxShadow: 'inset 0 0 0 4px rgba(255, 160, 0, 0.95)'
       };
     }
+  }
+
+  if (captureSquare) {
+    customSquareStyles[captureSquare] = {
+      ...customSquareStyles[captureSquare],
+      animation: 'capture-flash 1s ease-out'
+    };
+  }
+
+  if (highlightedMove) {
+    const highlightedSquares = [highlightedMove.from, highlightedMove.to];
+    if (highlightedMove.to2) {
+      highlightedSquares.push(highlightedMove.to2);
+    }
+
+    highlightedSquares.forEach(square => {
+      customSquareStyles[square] = {
+        ...customSquareStyles[square],
+        background: 'rgba(255, 215, 0, 0.65)',
+        boxShadow: 'inset 0 0 0 4px rgba(255, 193, 7, 0.95)'
+      };
+    });
   }
 
   return (
@@ -221,15 +318,15 @@ export function Chessboard({
           position: quantumPosition,  // Use quantum position, not chess.js FEN!
           onPieceDrop: handlePieceDrop,
           onSquareClick: handleSquareClick,
-          boardOrientation: playerColor,
+          boardOrientation,
           squareStyles: customSquareStyles,
           animationDurationInMs: 200,
           allowDragging: isMyTurn && !splitMode,
           boardStyle: {
             borderRadius: '8px',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-            width: '560px',
-            height: '560px'
+            width: `${boardSize}px`,
+            height: `${boardSize}px`
           },
           darkSquareStyle: { backgroundColor: '#779556' },
           lightSquareStyle: { backgroundColor: '#ebecd0' }
@@ -249,7 +346,7 @@ export function Chessboard({
             style={{
               position: 'absolute',
               background: badgeColor,
-              ...getSquarePosition(sp.square, playerColor)
+              ...getSquarePosition(sp.square, boardOrientation, boardSize)
             }}
           >
             {Math.round(sp.probability * 100)}%
@@ -284,11 +381,11 @@ export function Chessboard({
 }
 
 // Helper to calculate badge position based on square
-function getSquarePosition(square: string, orientation: 'white' | 'black'): { top: string; left: string } {
+function getSquarePosition(square: string, orientation: 'white' | 'black', boardSize: number): { top: string; left: string } {
   const file = square.charCodeAt(0) - 97; // a=0, h=7
   const rank = parseInt(square[1]!) - 1;   // 1=0, 8=7
 
-  const squareSize = 70; // 560px / 8 squares
+  const squareSize = boardSize / 8;
 
   let x = file * squareSize;
   let y = (7 - rank) * squareSize;
@@ -303,4 +400,3 @@ function getSquarePosition(square: string, orientation: 'white' | 'black'): { to
     left: `${x + squareSize - 28}px`
   };
 }
-

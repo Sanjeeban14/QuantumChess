@@ -69,8 +69,8 @@ function formatMoveNotation(move: MoveRecord, _moveIndex: number): { notation: s
 
 export function MoveNotation({
   gameState,
-  viewingMoveIndex: _viewingMoveIndex,
-  onNavigate: _onNavigate,
+  viewingMoveIndex,
+  onNavigate,
   isGameOver: _isGameOver = false
 }: MoveNotationProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -86,12 +86,8 @@ export function MoveNotation({
   }, [totalMoves]);
 
   // Navigation state
-  const isViewingHistory = _viewingMoveIndex !== null;
-  const currentViewIndex = _viewingMoveIndex ?? totalMoves - 1;
-  // const goToStart = () => _onNavigate?.(0);
-  // const goBack = () => _onNavigate?.(Math.max(0, currentViewIndex - 1));
-  // const goForward = () => _onNavigate?.(Math.min(totalMoves - 1, currentViewIndex + 1));
-  // const goToEnd = () => _onNavigate?.(null);
+  const isViewingHistory = viewingMoveIndex !== null;
+  const currentViewIndex = viewingMoveIndex ?? totalMoves - 1;
 
   // Group moves into pairs (white, black)
   const movePairs: Array<{
@@ -125,7 +121,7 @@ export function MoveNotation({
       </div>
 
       <div
-        className="notation-body"
+        className={`notation-body ${movePairs.length > 0 ? 'has-moves' : ''}`}
         ref={scrollRef}
         role="log"
         aria-labelledby="moves-title"
@@ -140,13 +136,15 @@ export function MoveNotation({
               <div key={pair.number} className="notation-row" role="listitem">
                 <span className="move-num" aria-hidden="true">{pair.number}.</span>
                 <span
-                  className={`white-move ${pair.white?.isQuantum ? 'quantum' : ''}`}
+                  className={`white-move ${pair.white?.isQuantum ? 'quantum' : ''} ${viewingMoveIndex === pair.whiteIndex ? 'viewing' : ''}`}
+                  onClick={() => pair.white && onNavigate?.(pair.whiteIndex)}
                   aria-label={`Move ${pair.number} white: ${pair.white?.notation || 'pending'}${pair.white?.isQuantum ? ' (quantum)' : ''}`}
                 >
                   {pair.white?.notation || '...'}
                 </span>
                 <span
-                  className={`black-move ${pair.black?.isQuantum ? 'quantum' : ''}`}
+                  className={`black-move ${pair.black?.isQuantum ? 'quantum' : ''} ${viewingMoveIndex === pair.blackIndex ? 'viewing' : ''}`}
+                  onClick={() => pair.black && onNavigate?.(pair.blackIndex)}
                   aria-label={pair.black ? `Move ${pair.number} black: ${pair.black.notation}${pair.black.isQuantum ? ' (quantum)' : ''}` : ''}
                 >
                   {pair.black?.notation || ''}
@@ -157,25 +155,6 @@ export function MoveNotation({
         )}
       </div>
 
-      {/* Navigation controls - TODO: Implement history viewing (requires storing position snapshots)
-      {(isGameOver || isViewingHistory || totalMoves > 0) && (
-        <div className="notation-nav">
-          <button onClick={goToStart} disabled={currentViewIndex <= 0} title="First move">
-            ⏮
-          </button>
-          <button onClick={goBack} disabled={currentViewIndex <= 0} title="Previous move">
-            ◀
-          </button>
-          <button onClick={goForward} disabled={currentViewIndex >= totalMoves - 1} title="Next move">
-            ▶
-          </button>
-          <button onClick={goToEnd} disabled={!isViewingHistory} title="Current position">
-            ⏭
-          </button>
-        </div>
-      )}
-      */}
     </aside>
   );
 }
-

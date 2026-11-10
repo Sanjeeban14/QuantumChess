@@ -7,6 +7,8 @@
   flex-direction: column;
   min-width: 220px;
   max-width: 280px;
+  width: 100%;
+  height: 640px;
 }
 
 .notation-header {
@@ -30,9 +32,16 @@
 }
 
 .notation-body {
-  max-height: 400px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 8px 0;
+}
+
+.notation-body:not(.has-moves) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .notation-body::-webkit-scrollbar {
@@ -86,6 +95,8 @@
 
 .black-move {
   color: #b58863;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  padding-left: 8px;
 }
 
 /* Quantum move styling */
@@ -173,10 +184,11 @@
     width: 100%;
     max-width: 100%;
     min-width: auto;
+    height: 420px;
   }
 
   .notation-body {
-    max-height: 200px;
+    max-height: none;
   }
 }
 
@@ -194,7 +206,7 @@
   }
 
   .notation-body {
-    max-height: 150px;
+    max-height: none;
   }
 
   .notation-row {
