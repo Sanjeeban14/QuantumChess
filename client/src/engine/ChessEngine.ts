@@ -165,15 +165,16 @@ export function createGame(quantumMode: boolean = true, maxSuperpositions: numbe
  * Find piece at a given square
  */
 export function findPieceAtSquare(state: QuantumGameState, square: Square): QuantumPiece | null {
+  return getPiecesAtSquare(state, square)[0] ?? null;
+}
+
+function getPiecesAtSquare(state: QuantumGameState, square: Square): QuantumPiece[] {
   const pos = squareToPos(square);
-  for (const [, piece] of state.pieces) {
-    for (const qPos of piece.positions) {
-      if (qPos.position.file === pos.file && qPos.position.rank === pos.rank && qPos.probability > 0) {
-        return piece;
-      }
-    }
-  }
-  return null;
+  return [...state.pieces.values()].filter(piece =>
+    piece.positions.some(qPos =>
+      qPos.position.file === pos.file && qPos.position.rank === pos.rank && qPos.probability > 0
+    )
+  );
 }
 
 /**
@@ -268,10 +269,7 @@ export function getLegalActions(state: QuantumGameState): QuantumMove[] {
       continue;
     }
 
-    const targets = [...targetSet].filter(target => {
-      const targetPiece = findPieceAtSquare(state, target);
-      return !targetPiece || targetPiece.owner === state.currentPlayer;
-    });
+    const targets = [...targetSet].filter(target => getPiecesAtSquare(state, target).length === 0);
     for (let first = 0; first < targets.length; first++) {
       for (let second = first + 1; second < targets.length; second++) {
         const to = targets[first];
@@ -367,6 +365,12 @@ export function makeMove(
     // Check if moving piece is in superposition at a different position than chess.js knows
     const movingPiece = findPieceAtSquare(state, from);
     const fromPos = squareToPos(from);
+    const hasFriendlyTarget = getPiecesAtSquare(state, to).some(piece =>
+      piece.owner === state.currentPlayer && piece.id !== movingPiece?.id
+    );
+    if (hasFriendlyTarget) {
+      return { success: false, newState: state, error: 'Cannot move onto a friendly piece' };
+    }
 
     // Clone the chess state
     const newChess = new Chess(state.chess.fen());
@@ -649,14 +653,9 @@ export function makeSplitMove(
     return { success: false, newState: state, error: 'Split targets must be different' };
   }
 
-  // Split cannot capture - check if target squares have enemy pieces
-  const pieceAtTo1 = findPieceAtSquare(state, to1);
-  const pieceAtTo2 = findPieceAtSquare(state, to2);
-  if (pieceAtTo1 && pieceAtTo1.owner !== state.currentPlayer) {
-    return { success: false, newState: state, error: 'Cannot split to a square with an enemy piece' };
-  }
-  if (pieceAtTo2 && pieceAtTo2.owner !== state.currentPlayer) {
-    return { success: false, newState: state, error: 'Cannot split to a square with an enemy piece' };
+  // Split moves cannot land on occupied squares.
+  if (getPiecesAtSquare(state, to1).length > 0 || getPiecesAtSquare(state, to2).length > 0) {
+    return { success: false, newState: state, error: 'Cannot split to an occupied square' };
   }
 
   // Find the piece
