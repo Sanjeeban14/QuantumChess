@@ -52,18 +52,12 @@ Thumbs.db
 *.temp
 *.cache
 
+# Python tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-# Local audit reports and generated audit output
-AUDIT_REPORT.md
-audit/
-audits/
-
-# Test files and generated test output
-TESTING.md
-client/vitest.config.*
-client/src/**/*.test.*
-server/test_*.py
-server/requirements-dev.txt
+# Test coverage output
 coverage/
 **/coverage/
 htmlcov/
