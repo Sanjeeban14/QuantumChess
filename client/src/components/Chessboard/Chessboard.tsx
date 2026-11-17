@@ -5,7 +5,25 @@ import type { MoveRecord, QuantumGameState } from '../../engine/ChessEngine';
 import { getSuperpositionPieces, getBoardPosition, findPieceAtSquare, getLegalActions, getLegalMovesFromSquare } from '../../engine/ChessEngine';
 import './Chessboard.css';
 
-const BOARD_SIZE = 640;
+const BOARD_SIZE = 500;
+
+type PromotionChoice = 'q' | 'r' | 'b' | 'n';
+
+function getPromotionColor(
+  gameState: QuantumGameState,
+  from: Square,
+  to: Square
+): 'white' | 'black' | null {
+  const chessPiece = gameState.chess.get(from);
+  const quantumPiece = findPieceAtSquare(gameState, from);
+  const isPawn = chessPiece?.type === 'p' || quantumPiece?.type === 'pawn';
+  if (!isPawn) return null;
+
+  const color = chessPiece?.color === 'w' || quantumPiece?.owner === 'white' ? 'white' : 'black';
+  return (color === 'white' && to[1] === '8') || (color === 'black' && to[1] === '1')
+    ? color
+    : null;
+}
 
 interface ChessboardProps {
   gameState: QuantumGameState;
@@ -36,11 +54,17 @@ export function Chessboard({
   const [moveFrom, setMoveFrom] = useState<string | null>(null);
   const [optionSquares, setOptionSquares] = useState<Record<string, React.CSSProperties>>({});
   const [captureSquare, setCaptureSquare] = useState<Square | null>(null);
+  const [promotionPending, setPromotionPending] = useState<{
+    from: Square;
+    to: Square;
+    color: 'white' | 'black';
+  } | null>(null);
 
   useEffect(() => {
     const updateBoardSize = () => {
       const availableWidth = window.innerWidth - 120;
-      setBoardSize(Math.min(BOARD_SIZE, Math.max(240, availableWidth)));
+      const availableHeight = window.innerHeight - 260;
+      setBoardSize(Math.min(BOARD_SIZE, Math.max(240, availableWidth), Math.max(240, availableHeight)));
     };
 
     updateBoardSize();
@@ -81,26 +105,28 @@ export function Chessboard({
   const quantumPosition = getBoardPosition(gameState);
 
   // Handle piece drop (drag and drop)
-  const handlePieceDrop = useCallback(({ piece, sourceSquare, targetSquare }: {
+  const handlePieceDrop = useCallback(({ sourceSquare, targetSquare }: {
     piece: { isSparePiece: boolean; position: string; pieceType: string };
     sourceSquare: string;
     targetSquare: string | null;
   }): boolean => {
     if (!isMyTurn || !targetSquare) return false;
 
-    // Check if it's a promotion
-    const pieceType = piece.pieceType;
-    const isPromotion = pieceType[1]?.toLowerCase() === 'p' &&
-      ((pieceType[0] === 'w' && targetSquare[1] === '8') ||
-        (pieceType[0] === 'b' && targetSquare[1] === '1'));
+    const from = sourceSquare as Square;
+    const to = targetSquare as Square;
+    const promotionColor = getPromotionColor(gameState, from, to);
+    if (promotionColor && getLegalMovesFromSquare(gameState, from).some(move => move.to === to)) {
+      setPromotionPending({ from, to, color: promotionColor });
+      setMoveFrom(null);
+      setOptionSquares({});
+      return false;
+    }
 
-    const promotion = isPromotion ? 'q' : undefined;
-
-    const success = onMove(sourceSquare as Square, targetSquare as Square, promotion);
+    const success = onMove(from, to);
     setMoveFrom(null);
     setOptionSquares({});
     return success;
-  }, [isMyTurn, onMove]);
+  }, [isMyTurn, onMove, gameState]);
 
   // Handle click to select piece and show legal moves
   const handleSquareClick = useCallback(({ square }: { piece: { pieceType: string } | null; square: string }) => {
@@ -115,17 +141,14 @@ export function Chessboard({
     // If clicking on a legal move target, make the move
     if (moveFrom && optionSquares[square]) {
       // Check for promotion - need to check both chess.js and quantum state
-      const chessPiece = gameState.chess.get(moveFrom as Square);
-      const quantumPiece = findPieceAtSquare(gameState, moveFrom as Square);
-
-      const isPawn = chessPiece?.type === 'p' || quantumPiece?.type === 'pawn';
-      const isWhite = chessPiece?.color === 'w' || quantumPiece?.owner === 'white';
-      const isPromotion = isPawn &&
-        ((isWhite && square[1] === '8') ||
-          (!isWhite && square[1] === '1'));
-
-      const promotion = isPromotion ? 'q' : undefined;
-      onMove(moveFrom as Square, square as Square, promotion);
+      const from = moveFrom as Square;
+      const to = square as Square;
+      const promotionColor = getPromotionColor(gameState, from, to);
+      if (promotionColor) {
+        setPromotionPending({ from, to, color: promotionColor });
+      } else {
+        onMove(from, to);
+      }
       setMoveFrom(null);
       setOptionSquares({});
       return;
@@ -332,6 +355,39 @@ export function Chessboard({
           lightSquareStyle: { backgroundColor: '#ebecd0' }
         }}
       />
+
+      {promotionPending && (
+        <div className="promotion-overlay" role="dialog" aria-label="Choose a promotion piece">
+          {([
+            ['q', 'Queen'],
+            ['r', 'Rook'],
+            ['b', 'Bishop'],
+            ['n', 'Knight']
+          ] as const).map(([choice, label]) => (
+            <button
+              key={choice}
+              type="button"
+              aria-label={`Promote to ${label}`}
+              onClick={() => {
+                onMove(promotionPending.from, promotionPending.to, choice as PromotionChoice);
+                setPromotionPending(null);
+              }}
+            >
+              {promotionPending.color === 'white'
+                ? { q: '♕', r: '♖', b: '♗', n: '♘' }[choice]
+                : { q: '♛', r: '♜', b: '♝', n: '♞' }[choice]}
+            </button>
+          ))}
+          <button
+            type="button"
+            className="promotion-cancel"
+            aria-label="Cancel promotion"
+            onClick={() => setPromotionPending(null)}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Probability badges for superposition pieces */}
       {superpositionPieces.map((sp, idx) => {

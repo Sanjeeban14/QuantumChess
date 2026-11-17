@@ -29,6 +29,7 @@ export interface GameMessage {
   color?: 'white' | 'black'; // For resign message
   whiteTimeMs?: number; // Time remaining in ms
   blackTimeMs?: number; // Time remaining in ms
+  activeColor?: 'white' | 'black' | null;
 }
 
 export interface TimeControl {
@@ -74,7 +75,7 @@ export function useChessGame({ serverUrl = '' }: UseChessGameOptions = {}) {
   const [timerState, setTimerState] = useState<TimerState>({
     whiteTimeMs: 5 * 60 * 1000,
     blackTimeMs: 5 * 60 * 1000,
-    activeColor: null, // null = waiting for white's first move
+    activeColor: 'white',
     lastTickTime: 0
   });
   const [flaggedPlayer, setFlaggedPlayer] = useState<'white' | 'black' | null>(null);
@@ -83,6 +84,24 @@ export function useChessGame({ serverUrl = '' }: UseChessGameOptions = {}) {
   const timeoutHandledRef = useRef(false);
 
   const connectionRef = useRef<WebRTCConnection | null>(null);
+  const [gameStateHistory, setGameStateHistory] = useState<QuantumGameState[]>([]);
+
+  useEffect(() => {
+    if (!gameState) {
+      setGameStateHistory(previous => previous.length === 0 ? previous : []);
+      return;
+    }
+
+    setGameStateHistory(previous => {
+      const moveCount = gameState.moveHistory.length;
+      if (moveCount === 0) return [gameState];
+      if (previous.length === moveCount) return [...previous, gameState];
+      if (previous.length === moveCount + 1) {
+        return [...previous.slice(0, moveCount), gameState];
+      }
+      return [gameState];
+    });
+  }, [gameState]);
 
   // Handle incoming P2P messages
   const handleMessage = useCallback((data: unknown) => {
@@ -206,7 +225,9 @@ export function useChessGame({ serverUrl = '' }: UseChessGameOptions = {}) {
             return {
               whiteTimeMs: message.whiteTimeMs!,
               blackTimeMs: message.blackTimeMs!,
-              activeColor: prev.activeColor === null ? 'black' : newActiveColor as 'white' | 'black',
+              activeColor: message.activeColor !== undefined
+                ? message.activeColor
+                : prev.activeColor === null ? 'black' : newActiveColor,
               lastTickTime: Date.now()
             };
           });
@@ -245,7 +266,7 @@ export function useChessGame({ serverUrl = '' }: UseChessGameOptions = {}) {
     setTimerState({
       whiteTimeMs: initialTimeMs,
       blackTimeMs: initialTimeMs,
-      activeColor: null, // Timer starts after white's first move
+      activeColor: 'white',
       lastTickTime: 0
     });
     setFlaggedPlayer(null);
@@ -352,7 +373,7 @@ export function useChessGame({ serverUrl = '' }: UseChessGameOptions = {}) {
       if (prev.activeColor === null && movingColor === 'white') {
         return {
           ...prev,
-          activeColor: 'black', // After white moves, it's black's turn
+          activeColor: isComputerGame ? 'white' : 'black',
           lastTickTime: now
         };
       }
@@ -373,7 +394,7 @@ export function useChessGame({ serverUrl = '' }: UseChessGameOptions = {}) {
         lastTickTime: now
       };
     });
-  }, [timeControl.increment]);
+  }, [isComputerGame, timeControl.increment]);
 
   // Execute a classical move
   const executeMove = useCallback((from: Square, to: Square, promotion?: string): boolean => {
@@ -406,7 +427,8 @@ export function useChessGame({ serverUrl = '' }: UseChessGameOptions = {}) {
       connectionRef.current?.send({
         type: 'time_sync',
         whiteTimeMs: current.whiteTimeMs,
-        blackTimeMs: current.blackTimeMs
+        blackTimeMs: current.blackTimeMs,
+        activeColor: current.activeColor
       });
       return current;
     });
@@ -443,7 +465,8 @@ export function useChessGame({ serverUrl = '' }: UseChessGameOptions = {}) {
       connectionRef.current?.send({
         type: 'time_sync',
         whiteTimeMs: current.whiteTimeMs,
-        blackTimeMs: current.blackTimeMs
+        blackTimeMs: current.blackTimeMs,
+        activeColor: current.activeColor
       });
       return current;
     });
@@ -717,7 +740,7 @@ export function useChessGame({ serverUrl = '' }: UseChessGameOptions = {}) {
     peerDisconnected,
 
     // Timer state
-    timerState,
+    timerState, gameStateHistory,
     timeControl,
     flaggedPlayer,
 

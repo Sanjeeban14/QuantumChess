@@ -73,6 +73,7 @@ function App() {
     rematchReceived,
     peerDisconnected,
     timerState,
+    gameStateHistory,
     startComputerGame,
     executeMove,
     disconnect,
@@ -102,6 +103,9 @@ function App() {
 
   const totalMoves = gameState?.moveHistory.length ?? 0;
   const currentMoveIndex = viewingMoveIndex ?? totalMoves - 1;
+  const boardGameState = viewingMoveIndex === null
+    ? gameState
+    : gameStateHistory[viewingMoveIndex + 1] ?? gameState;
   const boardOrientation = isBoardFlipped
     ? playerColor === 'white' ? 'black' : 'white'
     : playerColor;
@@ -270,10 +274,10 @@ function App() {
               </div>
 
               <Chessboard
-                gameState={gameState}
+                gameState={boardGameState}
                 playerColor={playerColor}
                 boardOrientation={boardOrientation}
-                isMyTurn={isMyTurn}
+                isMyTurn={viewingMoveIndex === null && isMyTurn}
                 onMove={executeMove}
                 highlightedMove={gameState.moveHistory[currentMoveIndex] ?? null}
                 splitMode={splitMode}

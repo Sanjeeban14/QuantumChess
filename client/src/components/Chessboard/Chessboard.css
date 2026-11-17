@@ -3,6 +3,41 @@
   display: inline-block;
 }
 
+.promotion-overlay {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  z-index: 20;
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
+  background: rgba(18, 24, 32, 0.96);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.promotion-overlay button {
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.promotion-overlay button:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.promotion-overlay .promotion-cancel {
+  width: 32px;
+  font-size: 1.4rem;
+}
+
 .game-over-overlay {
   position: absolute;
   top: 0;
