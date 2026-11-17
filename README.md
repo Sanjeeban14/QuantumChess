@@ -1,8 +1,8 @@
 # ⚛️ Quantum Chess
-![Split move screenshot](src/Image2.png)
 
 **A chess variant where a piece can occupy two squares at once.**
 
+![Split move screenshot](client/src/Image2.png)
 Quantum Chess layers probabilistic superposition and measurement onto standard chess rules. Split an eligible piece across two legal destinations, then take your chances when an opponent tries to capture it.
 
 ## At a glance
